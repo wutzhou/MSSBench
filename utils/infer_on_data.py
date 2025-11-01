@@ -3,12 +3,14 @@ from tqdm import tqdm
 import multiprocessing
 import sys
 
+## disabled by WZ for debugging
 from utils.gpt4_eval import *
 
 from tqdm import tqdm
 import time
 from utils.prompts import *
-from utils.infer_on_multiagent import *
+## disabled by WZ for debugging
+## from utils.infer_on_multiagent import *
 
 def test_each_mss(data, model, img_root, output_path=None, setting='if'):
     

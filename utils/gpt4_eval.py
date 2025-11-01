@@ -1,31 +1,49 @@
-from openai import AzureOpenAI
+from openai import OpenAI
 import json
 import tqdm
 import os
+import sys
 
-api_base = "" 
-api_key = ""  
-deployment_name = ""
-api_version = '2024-03-01-preview' 
 
-client = AzureOpenAI(
-    api_key=api_key,  
-    api_version=api_version,
-    base_url=f"{api_base}/openai/deployments/{deployment_name}"
-)
+# Load API key from environment
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("Please set OPENAI_API_KEY environment variable")
 
-def llm(prompt):
-    completion = client.chat.completions.create(
-        model=api_version,
-        messages=[{
-            "role": "user",
-            "content": prompt
-        }]
+# Initialize the client
+client = OpenAI(api_key=api_key)
+
+# Make a request
+try:
+    response = client.chat.completions.create(
+        model="gpt-4o",  # or "gpt-3.5-turbo", "gpt-4o", etc.
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Explain Python in one sentence."}
+        ],
+        max_tokens=10000,
+        temperature=0.7
     )
 
-    response = json.loads(completion.json() )
+    # Print the response
+    print(response.choices[0].message.content)
 
-    return response['choices'][0]['message']['content']
+except Exception as e:
+    print(f"Error: {e}")
+
+def llm(prompt):
+    response = client.chat.completions.create(
+        model="gpt-4o",  # or "gpt-3.5-turbo", "gpt-4o", etc.
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=10000,
+        temperature=0.7
+    )
+
+    print(f"response === {response}")
+    return response.choices[0].message.content
 
 
 prompt_embodied = {
@@ -108,10 +126,21 @@ def gpt4_eval(responses, save_file):
             prompt2=prompt_chat['prompt2'].format(rubric=construct_rubric('do_not_answer', annotation_aspects_chat)),
         )
         try:
+            print("\n===================================")
+            print(f"prompt_str_safe={prompt_str_safe}")
+            print(f"prompt_str_unsafe={prompt_str_unsafe}")
             eval_safe = llm(prompt_str_safe)
             eval_unsafe = llm(prompt_str_unsafe)
-        except:
+            print(f"eval_safe={eval_safe}")
+            print(f"eval_unsafe={eval_unsafe}")
+            print("===================================\n")
+        except :
             print('wrong with eval')
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print("Exception type:", exc_type)
+            print("Exception value:", exc_value)
+            print("\nFull traceback:")
+            traceback.print_exc()  # Prints full stack t
             continue
         
         evals.append({
@@ -142,6 +171,11 @@ def gpt4_eval(responses, save_file):
             eval_safe = llm(prompt_str_safe)
             eval_unsafe = llm(prompt_str_unsafe)
         except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print("Exception type:", exc_type)
+            print("Exception value:", exc_value)
+            print("\nFull traceback:")
+            traceback.print_exc()  # Prints full stack t
             print('wrong with eval')
             continue
         

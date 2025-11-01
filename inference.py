@@ -16,6 +16,7 @@ mllm_to_module = {
     'qwenvl': 'load_Qwen_VL',
     "gemini": "load_gemini",
     "claude": "load_claude",
+    "smolvl": "load_smolvl",
 }
 
 # args
